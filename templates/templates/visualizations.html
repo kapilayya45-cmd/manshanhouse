@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Odds Visualizations - Ashes</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            color: #00d4ff;
+        }
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 30px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        @media (max-width: 1000px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .chart-box {
+            background: #16213e;
+            border-radius: 12px;
+            padding: 20px;
+        }
+        .chart-box h2 {
+            color: #00d4ff;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+        .chart-box .description {
+            color: #888;
+            font-size: 12px;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+        .chart-wrapper {
+            height: 350px;
+            position: relative;
+        }
+        .pros-cons {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+            font-size: 11px;
+        }
+        .pros, .cons {
+            flex: 1;
+            padding: 10px;
+            border-radius: 6px;
+        }
+        .pros {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+        }
+        .cons {
+            background: rgba(255, 107, 107, 0.1);
+            border: 1px solid rgba(255, 107, 107, 0.3);
+        }
+        .pros strong {
+            color: #00ff88;
+        }
+        .cons strong {
+            color: #ff6b6b;
+        }
+        .pros ul, .cons ul {
+            margin-top: 5px;
+            padding-left: 15px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #00d4ff;
+            text-decoration: none;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        .legend-row {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 10px;
+            font-size: 12px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        .chart-container-full {
+            max-width: 1200px;
+            margin: 0 auto 30px;
+        }
+        .chart-wrapper-large {
+            height: 450px;
+            position: relative;
+        }
+    </style>
+</head>
+<body>
+    <a href="/" class="back-link">← Back to main dashboard</a>
+    <h1>Three-Outcome Visualization Approaches</h1>
+    <p class="subtitle">Australia vs England - Ashes 3rd Test</p>
+
+    <div class="chart-container-full">
+        <div class="chart-box">
+            <h2>Standard Line Chart (Recommended)</h2>
+            <p class="description">Simple, intuitive, and effective. Each outcome as a separate line over time.</p>
+            <div class="chart-wrapper-large">
+                <canvas id="standardChart"></canvas>
+            </div>
+            <div class="legend-row">
+                <div class="legend-item"><div class="legend-dot" style="background: #00d4ff"></div>Australia</div>
+                <div class="legend-item"><div class="legend-dot" style="background: #ffd700"></div>Draw</div>
+                <div class="legend-item"><div class="legend-dot" style="background: #ff6b6b"></div>England</div>
+            </div>
+        </div>
+    </div>
+
+    <h2 style="text-align: center; color: #666; margin: 40px 0 20px;">Alternative Approaches (for reference)</h2>
+
+    <div class="grid">
+        <!-- 1. Ternary Plot -->
+        <div class="chart-box">
+            <h2>1. Ternary Plot</h2>
+            <p class="description">The mathematically correct representation. Each corner is 100% of one outcome. The path shows how probabilities evolve over time.</p>
+            <div class="chart-wrapper" id="ternaryChart"></div>
+            <div class="pros-cons">
+                <div class="pros">
+                    <strong>Pros</strong>
+                    <ul>
+                        <li>Perfectly preserves constraint</li>
+                        <li>No redundancy</li>
+                        <li>Shows all three equally</li>
+                    </ul>
+                </div>
+                <div class="cons">
+                    <strong>Cons</strong>
+                    <ul>
+                        <li>Less familiar to users</li>
+                        <li>Time not on x-axis</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Stacked Area -->
+        <div class="chart-box">
+            <h2>2. Stacked Area Chart</h2>
+            <p class="description">Shows how probability mass shifts between outcomes over time. Stack always sums to 100%.</p>
+            <div class="chart-wrapper">
+                <canvas id="stackedChart"></canvas>
+            </div>
+            <div class="legend-row">
+                <div class="legend-item"><div class="legend-dot" style="background: #00d4ff"></div>Australia</div>
+                <div class="legend-item"><div class="legend-dot" style="background: #ffd700"></div>Draw</div>
+                <div class="legend-item"><div class="legend-dot" style="background: #ff6b6b"></div>England</div>
+            </div>
+            <div class="pros-cons">
+                <div class="pros">
+                    <strong>Pros</strong>
+                    <ul>
+                        <li>Extremely readable</li>
+                        <li>Time on x-axis</li>
+                        <li>Shows shifts clearly</li>
+                    </ul>
+                </div>
+                <div class="cons">
+                    <strong>Cons</strong>
+                    <ul>
+                        <li>Middle series harder to read</li>
+                        <li>Order affects perception</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Two-axis reduction -->
+        <div class="chart-box">
+            <h2>3. Two-Axis Reduction</h2>
+            <p class="description">Reduces to 2D: X = Australia − England, Y = Draw. A single point that moves over time.</p>
+            <div class="chart-wrapper">
+                <canvas id="reductionChart"></canvas>
+            </div>
+            <div class="pros-cons">
+                <div class="pros">
+                    <strong>Pros</strong>
+                    <ul>
+                        <li>Compact single point</li>
+                        <li>Shows trajectory</li>
+                        <li>Mathematically complete</li>
+                    </ul>
+                </div>
+                <div class="cons">
+                    <strong>Cons</strong>
+                    <ul>
+                        <li>Not intuitive</li>
+                        <li>Requires explanation</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Confidence + Draw band -->
+        <div class="chart-box">
+            <h2>4. Confidence Line + Draw Band</h2>
+            <p class="description">Main line shows Aus vs Eng (normalized excluding draw). Shaded band shows draw probability.</p>
+            <div class="chart-wrapper">
+                <canvas id="confidenceChart"></canvas>
+            </div>
+            <div class="legend-row">
+                <div class="legend-item"><div class="legend-dot" style="background: #00d4ff"></div>Aus vs Eng</div>
+                <div class="legend-item"><div class="legend-dot" style="background: rgba(255, 215, 0, 0.3)"></div>Draw %</div>
+            </div>
+            <div class="pros-cons">
+                <div class="pros">
+                    <strong>Pros</strong>
+                    <ul>
+                        <li>Familiar mental model</li>
+                        <li>Easy to scan</li>
+                        <li>Matches betting intuition</li>
+                    </ul>
+                </div>
+                <div class="cons">
+                    <strong>Cons</strong>
+                    <ul>
+                        <li>Draw is second-class</li>
+                        <li>Technically lossy</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let matchData = null;
+
+        function generateFakeData() {
+            // Simulate a 5-day Test match with realistic odds movements
+            const history = [];
+            const startDate = new Date('2025-12-14T10:00:00');
+
+            // Starting odds: Australia slight favorites
+            let aus = 55;
+            let draw = 25;
+            let eng = 20;
+
+            const events = [
+                // Day 1: Australia bat first
+                { overs: 0, status: 'Day 1 - Start', team: 'Australia', runs: 0, wickets: 0, ausShift: 0, drawShift: 0 },
+                { overs: 10, status: 'Day 1 - Session 1', team: 'Australia', runs: 45, wickets: 0, ausShift: 3, drawShift: -1 },
+                { overs: 25, status: 'Day 1 - Session 1', team: 'Australia', runs: 98, wickets: 1, ausShift: 2, drawShift: 0 },
+                { overs: 40, status: 'Day 1 - Lunch', team: 'Australia', runs: 142, wickets: 2, ausShift: 1, drawShift: 1 },
+                { overs: 55, status: 'Day 1 - Session 2', team: 'Australia', runs: 195, wickets: 2, ausShift: 4, drawShift: -1 },
+                { overs: 70, status: 'Day 1 - Session 2', team: 'Australia', runs: 248, wickets: 3, ausShift: 2, drawShift: 0 },
+                { overs: 80, status: 'Day 1 - Tea', team: 'Australia', runs: 285, wickets: 4, ausShift: -2, drawShift: 1 },
+                { overs: 90, status: 'Day 1 - Stumps', team: 'Australia', runs: 326, wickets: 8, ausShift: -5, drawShift: 2 },
+
+                // Day 2: Australia bowled out, England bat
+                { overs: 95, status: 'Day 2 - Start', team: 'Australia', runs: 342, wickets: 10, ausShift: -3, drawShift: 1 },
+                { overs: 105, status: 'Day 2 - England bat', team: 'England', runs: 35, wickets: 2, ausShift: 4, drawShift: -1 },
+                { overs: 120, status: 'Day 2 - Session 1', team: 'England', runs: 78, wickets: 3, ausShift: 3, drawShift: 0 },
+                { overs: 140, status: 'Day 2 - Lunch', team: 'England', runs: 125, wickets: 3, ausShift: -2, drawShift: 2 },
+                { overs: 160, status: 'Day 2 - Session 2', team: 'England', runs: 198, wickets: 4, ausShift: -4, drawShift: 2 },
+                { overs: 180, status: 'Day 2 - Tea', team: 'England', runs: 265, wickets: 5, ausShift: -3, drawShift: 1 },
+                { overs: 195, status: 'Day 2 - Stumps', team: 'England', runs: 312, wickets: 6, ausShift: -2, drawShift: 2 },
+
+                // Day 3: England take lead, Australia bat again
+                { overs: 210, status: 'Day 3 - Start', team: 'England', runs: 358, wickets: 8, ausShift: -1, drawShift: 1 },
+                { overs: 220, status: 'Day 3 - England out', team: 'England', runs: 378, wickets: 10, ausShift: 2, drawShift: -1 },
+                { overs: 230, status: 'Day 3 - Aus 2nd Inn', team: 'Australia', runs: 42, wickets: 1, ausShift: 1, drawShift: 1 },
+                { overs: 250, status: 'Day 3 - Lunch', team: 'Australia', runs: 95, wickets: 2, ausShift: 2, drawShift: 0 },
+                { overs: 270, status: 'Day 3 - Session 2', team: 'Australia', runs: 156, wickets: 2, ausShift: 5, drawShift: -2 },
+                { overs: 290, status: 'Day 3 - Tea', team: 'Australia', runs: 215, wickets: 3, ausShift: 3, drawShift: -1 },
+                { overs: 305, status: 'Day 3 - Stumps', team: 'Australia', runs: 278, wickets: 4, ausShift: 2, drawShift: 2 },
+
+                // Day 4: Australia extend lead, England chase
+                { overs: 320, status: 'Day 4 - Start', team: 'Australia', runs: 312, wickets: 5, ausShift: 1, drawShift: 1 },
+                { overs: 340, status: 'Day 4 - Aus declare', team: 'Australia', runs: 385, wickets: 7, ausShift: 4, drawShift: -2 },
+                { overs: 350, status: 'Day 4 - Eng chase', team: 'England', runs: 25, wickets: 1, ausShift: 2, drawShift: 0 },
+                { overs: 370, status: 'Day 4 - Lunch', team: 'England', runs: 68, wickets: 2, ausShift: 1, drawShift: 1 },
+                { overs: 390, status: 'Day 4 - Session 2', team: 'England', runs: 124, wickets: 3, ausShift: -3, drawShift: 2 },
+                { overs: 410, status: 'Day 4 - Tea', team: 'England', runs: 178, wickets: 4, ausShift: -2, drawShift: 3 },
+                { overs: 425, status: 'Day 4 - Stumps', team: 'England', runs: 228, wickets: 5, ausShift: -1, drawShift: 5 },
+
+                // Day 5: Tense finish
+                { overs: 435, status: 'Day 5 - Start', team: 'England', runs: 245, wickets: 5, ausShift: 0, drawShift: 3 },
+                { overs: 450, status: 'Day 5 - Session 1', team: 'England', runs: 285, wickets: 6, ausShift: -2, drawShift: 4 },
+                { overs: 465, status: 'Day 5 - Wicket!', team: 'England', runs: 305, wickets: 7, ausShift: 5, drawShift: -3 },
+                { overs: 475, status: 'Day 5 - Lunch', team: 'England', runs: 318, wickets: 7, ausShift: -3, drawShift: 5 },
+                { overs: 485, status: 'Day 5 - Tight!', team: 'England', runs: 332, wickets: 8, ausShift: 4, drawShift: 2 },
+                { overs: 495, status: 'Day 5 - Tea', team: 'England', runs: 342, wickets: 8, ausShift: -2, drawShift: 8 },
+                { overs: 505, status: 'Day 5 - Final hour', team: 'England', runs: 348, wickets: 9, ausShift: 6, drawShift: -4 },
+                { overs: 515, status: 'Day 5 - Result!', team: 'England', runs: 352, wickets: 10, ausShift: 10, drawShift: -15 },
+            ];
+
+            let innings = [
+                { team: 'Australia', inning_number: 1, runs: 0, wickets: 0, overs: 0 }
+            ];
+
+            events.forEach((event, i) => {
+                // Apply shifts with some randomness
+                aus = Math.max(5, Math.min(90, aus + event.ausShift + (Math.random() - 0.5) * 2));
+                draw = Math.max(2, Math.min(40, draw + event.drawShift + (Math.random() - 0.5) * 1));
+                eng = 100 - aus - draw;
+
+                // Ensure valid probabilities
+                if (eng < 5) {
+                    eng = 5;
+                    const total = aus + draw + eng;
+                    aus = aus / total * 100;
+                    draw = draw / total * 100;
+                    eng = eng / total * 100;
+                }
+
+                // Update innings tracking
+                if (event.team === 'Australia' && event.overs < 100) {
+                    innings = [{ team: 'Australia', inning_number: 1, runs: event.runs, wickets: event.wickets, overs: event.overs }];
+                } else if (event.team === 'England' && event.overs < 230) {
+                    innings = [
+                        { team: 'Australia', inning_number: 1, runs: 342, wickets: 10, overs: 95 },
+                        { team: 'England', inning_number: 1, runs: event.runs, wickets: event.wickets, overs: event.overs - 95 }
+                    ];
+                } else if (event.team === 'Australia' && event.overs >= 230 && event.overs < 345) {
+                    innings = [
+                        { team: 'Australia', inning_number: 1, runs: 342, wickets: 10, overs: 95 },
+                        { team: 'England', inning_number: 1, runs: 378, wickets: 10, overs: 125 },
+                        { team: 'Australia', inning_number: 2, runs: event.runs, wickets: event.wickets, overs: event.overs - 220 }
+                    ];
+                } else {
+                    innings = [
+                        { team: 'Australia', inning_number: 1, runs: 342, wickets: 10, overs: 95 },
+                        { team: 'England', inning_number: 1, runs: 378, wickets: 10, overs: 125 },
+                        { team: 'Australia', inning_number: 2, runs: 385, wickets: 7, overs: 120 },
+                        { team: 'England', inning_number: 2, runs: event.runs, wickets: event.wickets, overs: event.overs - 340 }
+                    ];
+                }
+
+                const timestamp = new Date(startDate.getTime() + i * 30 * 60 * 1000); // 30 min intervals
+
+                history.push({
+                    timestamp: timestamp.toISOString(),
+                    status: event.status,
+                    stage: 'RUNNING',
+                    state: 'LIVE',
+                    odds: {
+                        'Australia': { odds: (100 / aus).toFixed(2), implied_probability: parseFloat(aus.toFixed(1)) },
+                        'Draw': { odds: (100 / draw).toFixed(2), implied_probability: parseFloat(draw.toFixed(1)) },
+                        'England': { odds: (100 / eng).toFixed(2), implied_probability: parseFloat(eng.toFixed(1)) }
+                    },
+                    innings: JSON.parse(JSON.stringify(innings))
+                });
+            });
+
+            return {
+                match: { name: 'Ashes 3rd Test - Simulated', match_type: 'test' },
+                history: history
+            };
+        }
+
+        async function loadData() {
+            // Use fake data for demonstration
+            matchData = generateFakeData();
+            renderAllCharts();
+        }
+
+        function renderAllCharts() {
+            if (!matchData || !matchData.history.length) return;
+
+            renderStandardChart();
+            renderTernaryPlot();
+            renderStackedArea();
+            renderReductionChart();
+            renderConfidenceChart();
+        }
+
+        function renderStandardChart() {
+            const ctx = document.getElementById('standardChart').getContext('2d');
+
+            const labels = matchData.history.map(p => new Date(p.timestamp));
+            const ausData = matchData.history.map(p => ({
+                x: new Date(p.timestamp),
+                y: p.odds['Australia']?.implied_probability || 0,
+                meta: p
+            }));
+            const drawData = matchData.history.map(p => ({
+                x: new Date(p.timestamp),
+                y: p.odds['Draw']?.implied_probability || 0,
+                meta: p
+            }));
+            const engData = matchData.history.map(p => ({
+                x: new Date(p.timestamp),
+                y: p.odds['England']?.implied_probability || 0,
+                meta: p
+            }));
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [
+                        {
+                            label: 'Australia',
+                            data: ausData,
+                            borderColor: '#00d4ff',
+                            backgroundColor: 'rgba(0, 212, 255, 0.1)',
+                            tension: 0.3,
+                            pointRadius: 4,
+                            pointHoverRadius: 8
+                        },
+                        {
+                            label: 'Draw',
+                            data: drawData,
+                            borderColor: '#ffd700',
+                            backgroundColor: 'rgba(255, 215, 0, 0.1)',
+                            tension: 0.3,
+                            pointRadius: 4,
+                            pointHoverRadius: 8
+                        },
+                        {
+                            label: 'England',
+                            data: engData,
+                            borderColor: '#ff6b6b',
+                            backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                            tension: 0.3,
+                            pointRadius: 4,
+                            pointHoverRadius: 8
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                title: function(context) {
+                                    const meta = context[0].raw.meta;
+                                    return meta.status;
+                                },
+                                afterBody: function(context) {
+                                    const meta = context[0].raw.meta;
+                                    let text = '';
+                                    if (meta.innings) {
+                                        meta.innings.forEach(i => {
+                                            text += `\n${i.team}: ${i.runs}/${i.wickets} (${i.overs} ov)`;
+                                        });
+                                    }
+                                    return text;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                displayFormats: {
+                                    hour: 'MMM d, HH:mm'
+                                }
+                            },
+                            grid: { color: '#333' },
+                            ticks: { color: '#888' }
+                        },
+                        y: {
+                            min: 0,
+                            max: 100,
+                            grid: { color: '#333' },
+                            ticks: {
+                                color: '#888',
+                                callback: v => v + '%'
+                            },
+                            title: {
+                                display: true,
+                                text: 'Implied Probability',
+                                color: '#888'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderTernaryPlot() {
+            const ausData = [];
+            const drawData = [];
+            const engData = [];
+            const hoverText = [];
+
+            matchData.history.forEach((point, i) => {
+                const aus = point.odds['Australia']?.implied_probability || 0;
+                const draw = point.odds['Draw']?.implied_probability || 0;
+                const eng = point.odds['England']?.implied_probability || 0;
+
+                ausData.push(aus);
+                drawData.push(draw);
+                engData.push(eng);
+
+                const time = new Date(point.timestamp).toLocaleTimeString();
+                let scoreText = '';
+                if (point.innings && point.innings.length) {
+                    scoreText = point.innings.map(i => `${i.team}: ${i.runs}/${i.wickets}`).join('<br>');
+                }
+                hoverText.push(`<b>${time}</b><br>${point.status}<br>${scoreText}<br><br>Aus: ${aus.toFixed(1)}%<br>Draw: ${draw.toFixed(1)}%<br>Eng: ${eng.toFixed(1)}%`);
+            });
+
+            const trace = {
+                type: 'scatterternary',
+                mode: 'lines+markers',
+                a: ausData,
+                b: drawData,
+                c: engData,
+                text: hoverText,
+                hoverinfo: 'text',
+                marker: {
+                    size: 8,
+                    color: ausData.map((_, i) => i),
+                    colorscale: [[0, '#ff6b6b'], [0.5, '#ffd700'], [1, '#00d4ff']],
+                    showscale: false
+                },
+                line: {
+                    color: '#00d4ff',
+                    width: 2
+                }
+            };
+
+            const layout = {
+                ternary: {
+                    sum: 100,
+                    aaxis: {
+                        title: { text: 'Australia', font: { color: '#00d4ff' } },
+                        min: 0,
+                        linewidth: 2,
+                        gridcolor: '#333',
+                        tickcolor: '#888',
+                        tickfont: { color: '#888' }
+                    },
+                    baxis: {
+                        title: { text: 'Draw', font: { color: '#ffd700' } },
+                        min: 0,
+                        linewidth: 2,
+                        gridcolor: '#333',
+                        tickcolor: '#888',
+                        tickfont: { color: '#888' }
+                    },
+                    caxis: {
+                        title: { text: 'England', font: { color: '#ff6b6b' } },
+                        min: 0,
+                        linewidth: 2,
+                        gridcolor: '#333',
+                        tickcolor: '#888',
+                        tickfont: { color: '#888' }
+                    },
+                    bgcolor: '#16213e'
+                },
+                paper_bgcolor: '#16213e',
+                plot_bgcolor: '#16213e',
+                margin: { t: 30, b: 30, l: 30, r: 30 },
+                showlegend: false
+            };
+
+            Plotly.newPlot('ternaryChart', [trace], layout, { responsive: true });
+        }
+
+        function renderStackedArea() {
+            const ctx = document.getElementById('stackedChart').getContext('2d');
+
+            const labels = matchData.history.map(p => new Date(p.timestamp));
+            const ausData = matchData.history.map(p => p.odds['Australia']?.implied_probability || 0);
+            const drawData = matchData.history.map(p => p.odds['Draw']?.implied_probability || 0);
+            const engData = matchData.history.map(p => p.odds['England']?.implied_probability || 0);
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [
+                        {
+                            label: 'Australia',
+                            data: ausData,
+                            backgroundColor: 'rgba(0, 212, 255, 0.7)',
+                            borderColor: '#00d4ff',
+                            fill: true,
+                            tension: 0.3
+                        },
+                        {
+                            label: 'Draw',
+                            data: drawData,
+                            backgroundColor: 'rgba(255, 215, 0, 0.7)',
+                            borderColor: '#ffd700',
+                            fill: true,
+                            tension: 0.3
+                        },
+                        {
+                            label: 'England',
+                            data: engData,
+                            backgroundColor: 'rgba(255, 107, 107, 0.7)',
+                            borderColor: '#ff6b6b',
+                            fill: true,
+                            tension: 0.3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                afterBody: function(context) {
+                                    const idx = context[0].dataIndex;
+                                    const point = matchData.history[idx];
+                                    let text = `\nStatus: ${point.status}`;
+                                    if (point.innings) {
+                                        point.innings.forEach(i => {
+                                            text += `\n${i.team}: ${i.runs}/${i.wickets} (${i.overs} ov)`;
+                                        });
+                                    }
+                                    return text;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'time',
+                            grid: { color: '#333' },
+                            ticks: { color: '#888' }
+                        },
+                        y: {
+                            stacked: true,
+                            min: 0,
+                            max: 100,
+                            grid: { color: '#333' },
+                            ticks: {
+                                color: '#888',
+                                callback: v => v + '%'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderReductionChart() {
+            const ctx = document.getElementById('reductionChart').getContext('2d');
+
+            // X = Australia - England, Y = Draw
+            const data = matchData.history.map((p, i) => {
+                const aus = p.odds['Australia']?.implied_probability || 0;
+                const draw = p.odds['Draw']?.implied_probability || 0;
+                const eng = p.odds['England']?.implied_probability || 0;
+                return {
+                    x: aus - eng,
+                    y: draw,
+                    meta: p
+                };
+            });
+
+            new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'State',
+                        data: data,
+                        backgroundColor: data.map((_, i) => `rgba(0, 212, 255, ${0.3 + (i / data.length) * 0.7})`),
+                        borderColor: '#00d4ff',
+                        pointRadius: 6,
+                        pointHoverRadius: 10,
+                        showLine: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const point = context.raw.meta;
+                                    const aus = point.odds['Australia']?.implied_probability.toFixed(1);
+                                    const draw = point.odds['Draw']?.implied_probability.toFixed(1);
+                                    const eng = point.odds['England']?.implied_probability.toFixed(1);
+                                    return [
+                                        `Aus-Eng: ${context.raw.x.toFixed(1)}%`,
+                                        `Draw: ${context.raw.y.toFixed(1)}%`,
+                                        ``,
+                                        `Aus: ${aus}% | Draw: ${draw}% | Eng: ${eng}%`
+                                    ];
+                                },
+                                afterLabel: function(context) {
+                                    const point = context.raw.meta;
+                                    let text = `Status: ${point.status}`;
+                                    if (point.innings) {
+                                        point.innings.forEach(i => {
+                                            text += `\n${i.team}: ${i.runs}/${i.wickets}`;
+                                        });
+                                    }
+                                    return text;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            min: -100,
+                            max: 100,
+                            grid: { color: '#333' },
+                            ticks: { color: '#888', callback: v => v + '%' },
+                            title: {
+                                display: true,
+                                text: '← England favored | Australia favored →',
+                                color: '#888'
+                            }
+                        },
+                        y: {
+                            min: 0,
+                            max: 50,
+                            grid: { color: '#333' },
+                            ticks: { color: '#888', callback: v => v + '%' },
+                            title: {
+                                display: true,
+                                text: 'Draw Probability',
+                                color: '#888'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderConfidenceChart() {
+            const ctx = document.getElementById('confidenceChart').getContext('2d');
+
+            const labels = matchData.history.map(p => new Date(p.timestamp));
+
+            // Normalize Aus vs Eng (excluding draw)
+            const confidenceData = matchData.history.map(p => {
+                const aus = p.odds['Australia']?.implied_probability || 0;
+                const eng = p.odds['England']?.implied_probability || 0;
+                const total = aus + eng;
+                // Return as 0-100 where 50 = even, >50 = Aus favored
+                return total > 0 ? (aus / total) * 100 : 50;
+            });
+
+            const drawData = matchData.history.map(p => p.odds['Draw']?.implied_probability || 0);
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [
+                        {
+                            label: 'Draw %',
+                            data: drawData,
+                            backgroundColor: 'rgba(255, 215, 0, 0.2)',
+                            borderColor: 'rgba(255, 215, 0, 0.5)',
+                            fill: true,
+                            tension: 0.3,
+                            yAxisID: 'y1',
+                            pointRadius: 0
+                        },
+                        {
+                            label: 'Aus vs Eng',
+                            data: confidenceData,
+                            backgroundColor: 'transparent',
+                            borderColor: '#00d4ff',
+                            borderWidth: 3,
+                            fill: false,
+                            tension: 0.3,
+                            yAxisID: 'y',
+                            pointRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                afterBody: function(context) {
+                                    const idx = context[0].dataIndex;
+                                    const point = matchData.history[idx];
+                                    const aus = point.odds['Australia']?.implied_probability.toFixed(1);
+                                    const draw = point.odds['Draw']?.implied_probability.toFixed(1);
+                                    const eng = point.odds['England']?.implied_probability.toFixed(1);
+                                    let text = `\nAus: ${aus}% | Draw: ${draw}% | Eng: ${eng}%`;
+                                    text += `\nStatus: ${point.status}`;
+                                    if (point.innings) {
+                                        point.innings.forEach(i => {
+                                            text += `\n${i.team}: ${i.runs}/${i.wickets} (${i.overs} ov)`;
+                                        });
+                                    }
+                                    return text;
+                                }
+                            }
+                        },
+                        annotation: {
+                            annotations: {
+                                line1: {
+                                    type: 'line',
+                                    yMin: 50,
+                                    yMax: 50,
+                                    borderColor: 'rgba(255, 255, 255, 0.3)',
+                                    borderDash: [5, 5]
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'time',
+                            grid: { color: '#333' },
+                            ticks: { color: '#888' }
+                        },
+                        y: {
+                            position: 'left',
+                            min: 0,
+                            max: 100,
+                            grid: { color: '#333' },
+                            ticks: {
+                                color: '#888',
+                                callback: function(v) {
+                                    if (v === 0) return '100% ENG';
+                                    if (v === 50) return 'Even';
+                                    if (v === 100) return '100% AUS';
+                                    return '';
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Head-to-head (excl. draw)',
+                                color: '#888'
+                            }
+                        },
+                        y1: {
+                            position: 'right',
+                            min: 0,
+                            max: 50,
+                            grid: { display: false },
+                            ticks: {
+                                color: '#ffd700',
+                                callback: v => v + '%'
+                            },
+                            title: {
+                                display: true,
+                                text: 'Draw %',
+                                color: '#ffd700'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Load data on page load
+        loadData();
+
+        // Auto-refresh every 30 seconds
+        setInterval(loadData, 30000);
+    </script>
+</body>
+</html>
