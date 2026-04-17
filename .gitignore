@@ -1,0 +1,26 @@
+# Virtual environment
+venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.mypy_cache/
+
+# Database
+*.db
+
+# Binaries
+cloudflared
+
+# IDE
+.vscode/
+.idea/
+
+# Secrets
+.env
+
+# Misc
+*.png
+*.json
+output.txt
