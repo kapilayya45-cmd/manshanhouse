@@ -1,5 +1,6 @@
 flask
-gunicorn
-pandas
-requests
 supabase
+psycopg2-binary
+gunicorn
+requests
+pandas
