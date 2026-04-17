@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Visitors</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            margin: 0;
+            padding: 1rem;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        h1 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        .header-actions a {
+            color: #888;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        .header-actions a:hover, .header-actions a.active {
+            color: #4a9eff;
+        }
+        .nav-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-right: 2rem;
+        }
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .btn-primary {
+            background: #4a9eff;
+            color: #fff;
+        }
+        .btn-primary:hover {
+            background: #3a8eef;
+        }
+        .btn-secondary {
+            background: #444;
+            color: #fff;
+        }
+        .btn-secondary:hover {
+            background: #555;
+        }
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
+        }
+        .btn-success {
+            background: #22c55e;
+            color: #fff;
+        }
+        .btn-danger {
+            background: #ff4444;
+            color: #fff;
+        }
+        .filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .filter-group {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        .filter-group label {
+            color: #888;
+            font-size: 0.85rem;
+        }
+        .filter-btn {
+            padding: 0.35rem 0.75rem;
+            border: 1px solid #444;
+            background: transparent;
+            color: #aaa;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        .filter-btn:hover {
+            border-color: #666;
+            color: #fff;
+        }
+        .filter-btn.active {
+            background: #4a9eff;
+            border-color: #4a9eff;
+            color: #fff;
+        }
+        .stats-bar {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 1rem;
+            padding: 0.75rem 1rem;
+            background: #16213e;
+            border-radius: 6px;
+        }
+        .stat {
+            display: flex;
+            flex-direction: column;
+        }
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #4a9eff;
+        }
+        .stat-label {
+            font-size: 0.75rem;
+            color: #888;
+            text-transform: uppercase;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #16213e;
+            border-radius: 8px;
+            overflow: hidden;
+            font-size: 0.9rem;
+        }
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #333;
+        }
+        th {
+            background: #0f0f23;
+            font-weight: 500;
+            color: #aaa;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            position: sticky;
+            top: 0;
+        }
+        tr:hover {
+            background: #1e2a4a;
+        }
+        tr.known {
+            opacity: 0.6;
+        }
+        tr.bot {
+            opacity: 0.5;
+        }
+        .ip-cell {
+            font-family: monospace;
+            font-size: 0.85rem;
+        }
+        .badge {
+            display: inline-block;
+            padding: 0.15rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            margin-left: 0.5rem;
+        }
+        .badge-known {
+            background: #22c55e;
+            color: #fff;
+        }
+        .badge-bot {
+            background: #888;
+            color: #fff;
+        }
+        .badge-owner {
+            background: #8b5cf6;
+            color: #fff;
+        }
+        .location-cell {
+            min-width: 150px;
+        }
+        .location-loading {
+            color: #666;
+            font-style: italic;
+        }
+        .device-cell {
+            max-width: 200px;
+        }
+        .device-info {
+            font-size: 0.8rem;
+            color: #aaa;
+        }
+        .device-browser {
+            color: #fff;
+        }
+        .device-os {
+            color: #888;
+        }
+        .time-cell {
+            white-space: nowrap;
+            font-size: 0.8rem;
+        }
+        .time-relative {
+            color: #888;
+        }
+        .requests-cell {
+            text-align: center;
+        }
+        .actions-cell {
+            white-space: nowrap;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #888;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background: #16213e;
+            padding: 1.5rem;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 400px;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.1rem;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.25rem;
+            color: #aaa;
+            font-size: 0.85rem;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #333;
+            border-radius: 4px;
+            background: #0f0f23;
+            color: #fff;
+            font-size: 0.9rem;
+        }
+        .form-actions {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+            margin-top: 1rem;
+        }
+        .country-flag {
+            margin-right: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Visitors</h1>
+        <div class="header-actions">
+            <div class="nav-tabs">
+                <a href="/admin/events">Events</a>
+                <a href="/admin/visitors" class="active">Visitors</a>
+            </div>
+            <a href="/">Back to site</a>
+            <a href="/logout">Logout</a>
+        </div>
+    </div>
+
+    <div class="stats-bar" id="statsBar">
+        <div class="stat">
+            <span class="stat-value" id="totalVisitors">-</span>
+            <span class="stat-label">Total IPs</span>
+        </div>
+        <div class="stat">
+            <span class="stat-value" id="realVisitors">-</span>
+            <span class="stat-label">Real Visitors</span>
+        </div>
+        <div class="stat">
+            <span class="stat-value" id="botCount">-</span>
+            <span class="stat-label">Bots</span>
+        </div>
+        <div class="stat">
+            <span class="stat-value" id="knownCount">-</span>
+            <span class="stat-label">Known</span>
+        </div>
+    </div>
+
+    <div class="filters">
+        <div class="filter-group">
+            <label>Show:</label>
+            <button class="filter-btn active" data-filter="all">All</button>
+            <button class="filter-btn" data-filter="real">Real Only</button>
+            <button class="filter-btn" data-filter="bots">Bots</button>
+            <button class="filter-btn" data-filter="known">Known</button>
+        </div>
+        <div class="filter-group" id="locationBtn" style="display: none;">
+            <button class="btn btn-secondary btn-sm" onclick="fetchLocations()">
+                Fetch <span id="missingCount">0</span> Missing Locations
+            </button>
+        </div>
+    </div>
+
+    <table id="visitorsTable">
+        <thead>
+            <tr>
+                <th>IP Address</th>
+                <th>Location</th>
+                <th>Device / Browser</th>
+                <th>First Seen</th>
+                <th>Last Seen</th>
+                <th>Requests</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="visitorsBody">
+            <tr><td colspan="7" class="empty-state">Loading...</td></tr>
+        </tbody>
+    </table>
+
+    <div class="modal" id="knownModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Mark as Known</h2>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="knownForm">
+                <input type="hidden" id="knownIp">
+                <div class="form-group">
+                    <label>IP Address</label>
+                    <input type="text" id="knownIpDisplay" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Owner (optional)</label>
+                    <input type="text" id="knownOwner" placeholder="e.g., Me, Office, etc.">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn btn-success">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let visitors = [];
+        let currentFilter = 'all';
+        let missingLocations = 0;
+
+        // User agent parser
+        function parseUserAgent(ua) {
+            if (!ua) return { browser: 'Unknown', os: 'Unknown', device: 'Unknown' };
+
+            let browser = 'Unknown';
+            let os = 'Unknown';
+            let device = 'Desktop';
+
+            // Detect known bots/apps first
+            if (ua.includes('facebookexternalhit')) browser = 'Facebook';
+            else if (ua.includes('WhatsApp')) browser = 'WhatsApp';
+            else if (ua.includes('Slack')) browser = 'Slack';
+            else if (ua.includes('Discord')) browser = 'Discord';
+            else if (ua.includes('Telegram')) browser = 'Telegram';
+            else if (ua.includes('Twitter') || ua.includes('Twitterbot')) browser = 'Twitter';
+            else if (ua.includes('ChatGPT') || ua.includes('GPTBot')) browser = 'ChatGPT';
+            else if (ua.includes('Googlebot')) browser = 'Googlebot';
+            else if (ua.includes('bingbot')) browser = 'Bingbot';
+            else if (ua.includes('curl/')) browser = 'curl';
+            else if (ua.includes('Wget')) browser = 'wget';
+            else if (ua.includes('python')) browser = 'Python';
+            else if (ua.includes('Werkzeug')) browser = 'Werkzeug';
+            // Detect browsers
+            else if (ua.includes('Firefox/')) browser = 'Firefox';
+            else if (ua.includes('Edg/')) browser = 'Edge';
+            else if (ua.includes('OPR/') || ua.includes('Opera')) browser = 'Opera';
+            else if (ua.includes('Chrome/') || ua.includes('CriOS')) browser = 'Chrome';
+            else if (ua.includes('Safari/') || ua.includes('Version/')) browser = 'Safari';
+            // iOS Safari without explicit Safari string (truncated UAs)
+            else if ((ua.includes('iPhone') || ua.includes('iPad')) && ua.includes('AppleWebKit')) browser = 'Safari';
+            // Android Chrome without explicit Chrome string (truncated UAs)
+            else if (ua.includes('Android') && ua.includes('AppleWebKit') && !ua.includes('Firefox')) browser = 'Chrome';
+
+            // Detect OS
+            if (ua.includes('Windows')) { os = 'Windows'; }
+            else if (ua.includes('Mac OS X') || ua.includes('Macintosh')) { os = 'macOS'; }
+            else if (ua.includes('iPhone')) { os = 'iOS'; device = 'Mobile'; }
+            else if (ua.includes('iPad')) { os = 'iPadOS'; device = 'Tablet'; }
+            else if (ua.includes('Android')) { os = 'Android'; device = 'Mobile'; }
+            else if (ua.includes('Linux')) { os = 'Linux'; }
+            else if (ua.includes('CrOS')) { os = 'ChromeOS'; }
+
+            return { browser, os, device };
+        }
+
+        // Format relative time
+        function timeAgo(dateStr) {
+            const date = new Date(dateStr);
+            const now = new Date();
+            const seconds = Math.floor((now - date) / 1000);
+
+            if (seconds < 60) return 'just now';
+            if (seconds < 3600) return Math.floor(seconds / 60) + 'm ago';
+            if (seconds < 86400) return Math.floor(seconds / 3600) + 'h ago';
+            if (seconds < 604800) return Math.floor(seconds / 86400) + 'd ago';
+            return date.toLocaleDateString();
+        }
+
+        // Format date
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        }
+
+        // Render visitors table
+        function renderTable() {
+            const tbody = document.getElementById('visitorsBody');
+            const filtered = visitors.filter(v => {
+                if (currentFilter === 'real') return !v.is_bot && !v.is_known;
+                if (currentFilter === 'bots') return v.is_bot;
+                if (currentFilter === 'known') return v.is_known;
+                return true;
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No visitors match this filter</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(v => {
+                const ua = v.user_agents[0] || '';
+                const parsed = parseUserAgent(ua);
+                const loc = v.location;
+                const rowClass = v.is_known ? 'known' : (v.is_bot ? 'bot' : '');
+
+                let locationHtml = '-';
+                if (loc) {
+                    const flag = loc.country_code ? countryCodeToFlag(loc.country_code) : '';
+                    locationHtml = `<span class="country-flag">${flag}</span> ${loc.city || ''}, ${loc.country || ''}`;
+                }
+
+                return `
+                    <tr class="${rowClass}" data-ip="${v.ip}">
+                        <td class="ip-cell">
+                            ${v.ip}
+                            ${v.is_known ? `<span class="badge badge-known">Known</span>` : ''}
+                            ${v.is_known && v.owner ? `<span class="badge badge-owner">${v.owner}</span>` : ''}
+                            ${v.is_bot ? `<span class="badge badge-bot">Bot</span>` : ''}
+                        </td>
+                        <td class="location-cell">${locationHtml}</td>
+                        <td class="device-cell">
+                            <div class="device-info">
+                                <span class="device-browser">${parsed.browser}</span>
+                                <span class="device-os">/ ${parsed.os}</span>
+                            </div>
+                        </td>
+                        <td class="time-cell" title="${formatDate(v.first_seen)}">
+                            <span class="time-relative">${timeAgo(v.first_seen)}</span>
+                        </td>
+                        <td class="time-cell" title="${formatDate(v.last_seen)}">
+                            <span class="time-relative">${timeAgo(v.last_seen)}</span>
+                        </td>
+                        <td class="requests-cell">
+                            ${v.page_views} / ${v.total_requests}
+                        </td>
+                        <td class="actions-cell">
+                            ${v.is_known
+                                ? `<button class="btn btn-danger btn-sm" onclick="removeKnown('${v.ip}')">Unmark</button>`
+                                : `<button class="btn btn-success btn-sm" onclick="markKnown('${v.ip}')">Mark Known</button>`
+                            }
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Update stats
+        function updateStats() {
+            const total = visitors.length;
+            const bots = visitors.filter(v => v.is_bot).length;
+            const known = visitors.filter(v => v.is_known).length;
+            const real = total - bots - known;
+
+            document.getElementById('totalVisitors').textContent = total;
+            document.getElementById('realVisitors').textContent = real;
+            document.getElementById('botCount').textContent = bots;
+            document.getElementById('knownCount').textContent = known;
+        }
+
+        // Fetch visitors from API
+        async function fetchVisitors() {
+            try {
+                const res = await fetch('/api/admin/visitors');
+                const data = await res.json();
+                visitors = data.visitors;
+                missingLocations = data.missing_locations || 0;
+
+                // Show/hide fetch locations button
+                const btn = document.getElementById('locationBtn');
+                if (missingLocations > 0) {
+                    document.getElementById('missingCount').textContent = missingLocations;
+                    btn.style.display = 'flex';
+                } else {
+                    btn.style.display = 'none';
+                }
+
+                updateStats();
+                renderTable();
+            } catch (err) {
+                console.error('Failed to fetch visitors:', err);
+            }
+        }
+
+        // Fetch locations via server-side API
+        async function fetchLocations() {
+            const btn = document.querySelector('#locationBtn button');
+            btn.disabled = true;
+            btn.textContent = 'Fetching...';
+
+            try {
+                const res = await fetch('/api/admin/fetch-locations', { method: 'POST' });
+                const data = await res.json();
+
+                if (data.error) {
+                    alert('Error: ' + data.error);
+                } else {
+                    // Reload visitors to get updated locations
+                    await fetchVisitors();
+                }
+            } catch (err) {
+                console.error('Failed to fetch locations:', err);
+                alert('Failed to fetch locations');
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = `Fetch <span id="missingCount">${missingLocations}</span> Missing Locations`;
+        }
+
+        // Convert country code to flag emoji
+        function countryCodeToFlag(code) {
+            if (!code) return '';
+            const codePoints = code
+                .toUpperCase()
+                .split('')
+                .map(char => 127397 + char.charCodeAt(0));
+            return String.fromCodePoint(...codePoints);
+        }
+
+        // Mark IP as known
+        function markKnown(ip) {
+            document.getElementById('knownIp').value = ip;
+            document.getElementById('knownIpDisplay').value = ip;
+            document.getElementById('knownOwner').value = '';
+            document.getElementById('knownModal').classList.add('active');
+        }
+
+        // Remove known IP
+        async function removeKnown(ip) {
+            if (!confirm('Remove this IP from known list?')) return;
+
+            try {
+                await fetch(`/api/admin/known-ips/${encodeURIComponent(ip)}`, { method: 'DELETE' });
+                fetchVisitors();
+            } catch (err) {
+                alert('Failed to remove IP');
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('knownModal').classList.remove('active');
+        }
+
+        // Handle known form submit
+        document.getElementById('knownForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const ip = document.getElementById('knownIp').value;
+            const owner = document.getElementById('knownOwner').value;
+
+            try {
+                await fetch('/api/admin/known-ips', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ip, owner })
+                });
+                closeModal();
+                fetchVisitors();
+            } catch (err) {
+                alert('Failed to save');
+            }
+        });
+
+        // Filter buttons
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentFilter = btn.dataset.filter;
+                renderTable();
+            });
+        });
+
+        // Modal close handlers
+        document.getElementById('knownModal').addEventListener('click', (e) => {
+            if (e.target.id === 'knownModal') closeModal();
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
+
+        // Initial load
+        fetchVisitors();
+    </script>
+</body>
+</html>
