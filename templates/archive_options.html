@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Archive Options - The Score Line</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            color: #00d4ff;
+        }
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 40px;
+        }
+        .option {
+            background: #16213e;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .option-title {
+            color: #00d4ff;
+            font-size: 18px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+        }
+        .demo {
+            background: #0f1a2e;
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        /* Common button styles */
+        .match-btn {
+            padding: 12px 24px;
+            border: 2px solid #00d4ff;
+            background: transparent;
+            color: #00d4ff;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .match-btn:hover, .match-btn.active {
+            background: #00d4ff;
+            color: #1a1a2e;
+        }
+
+        /* Option 1: Collapsible */
+        .match-selector {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .collapsible-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 15px;
+            color: #888;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .collapsible-header:hover {
+            color: #00d4ff;
+        }
+        .collapsible-content {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #333;
+        }
+        .archived-btn {
+            padding: 10px 20px;
+            border: 1px solid #555;
+            background: transparent;
+            color: #888;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+        .archived-btn:hover {
+            border-color: #00d4ff;
+            color: #00d4ff;
+        }
+
+        /* Option 2: Tabs */
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 0;
+            margin-bottom: 15px;
+        }
+        .tab-btn {
+            padding: 10px 30px;
+            border: 2px solid #00d4ff;
+            background: transparent;
+            color: #00d4ff;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .tab-btn:first-child {
+            border-radius: 8px 0 0 8px;
+        }
+        .tab-btn:last-child {
+            border-radius: 0 8px 8px 0;
+            border-left: none;
+        }
+        .tab-btn.active {
+            background: #00d4ff;
+            color: #1a1a2e;
+        }
+        .tab-content {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* Option 3: Dropdown */
+        .filter-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .filter-select {
+            padding: 10px 15px;
+            border: 2px solid #00d4ff;
+            background: #0f1a2e;
+            color: #00d4ff;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        /* Option 4: Faded row */
+        .active-row {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+        .archive-row {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            padding-top: 15px;
+            border-top: 1px solid #333;
+        }
+        .archive-badge {
+            font-size: 10px;
+            background: #444;
+            color: #aaa;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 5px;
+            vertical-align: middle;
+        }
+        .faded-btn {
+            padding: 10px 20px;
+            border: 1px solid #444;
+            background: transparent;
+            color: #666;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+        .faded-btn:hover {
+            border-color: #888;
+            color: #aaa;
+        }
+
+        /* Option 5: Link */
+        .archive-link {
+            display: inline-block;
+            margin-top: 15px;
+            color: #888;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .archive-link:hover {
+            color: #00d4ff;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>Archive Display Options</h1>
+    <p class="subtitle">Choose how to display finished matches alongside active ones</p>
+
+    <!-- Option 1: Collapsible -->
+    <div class="option">
+        <h2 class="option-title">Option 1: Collapsible "Past Matches" Section</h2>
+        <div class="demo">
+            <div class="match-selector">
+                <button class="match-btn active">Ashes 3rd Test</button>
+            </div>
+            <div class="collapsible-header" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'flex' : 'none'">
+                ▼ Past Matches (2)
+            </div>
+            <div class="collapsible-content">
+                <button class="archived-btn">BBL: Sixers vs Strikers</button>
+                <button class="archived-btn">BBL: Stars vs Hurricanes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Option 2: Tabs -->
+    <div class="option">
+        <h2 class="option-title">Option 2: Tab Interface</h2>
+        <div class="demo">
+            <div class="tabs">
+                <button class="tab-btn active">Live</button>
+                <button class="tab-btn">Archive</button>
+            </div>
+            <div class="tab-content">
+                <button class="match-btn active">Ashes 3rd Test</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Option 3: Dropdown -->
+    <div class="option">
+        <h2 class="option-title">Option 3: Buttons + Archive Dropdown</h2>
+        <div class="demo">
+            <div class="filter-row">
+                <button class="match-btn active">Ashes 3rd Test</button>
+                <select class="filter-select">
+                    <option value="" disabled selected>📁 Past Matches</option>
+                    <option>18 Dec - BBL: Stars vs Hurricanes</option>
+                    <option>17 Dec - BBL: Sixers vs Strikers</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Option 4: Faded Row -->
+    <div class="option">
+        <h2 class="option-title">Option 4: Faded Archive Row</h2>
+        <div class="demo">
+            <div class="active-row">
+                <button class="match-btn active">Ashes 3rd Test</button>
+            </div>
+            <div class="archive-row">
+                <button class="faded-btn">BBL: Sixers vs Strikers <span class="archive-badge">ENDED</span></button>
+                <button class="faded-btn">BBL: Stars vs Hurricanes <span class="archive-badge">ENDED</span></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Option 5: Separate Page -->
+    <div class="option">
+        <h2 class="option-title">Option 5: Separate Archive Page</h2>
+        <div class="demo">
+            <div class="match-selector">
+                <button class="match-btn active">Ashes 3rd Test</button>
+            </div>
+            <div style="text-align: center;">
+                <a href="#" class="archive-link">📁 View Past Matches →</a>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
