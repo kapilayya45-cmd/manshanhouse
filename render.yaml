@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: thescoreline
+    runtime: python
+    region: singapore  # Closest to Australia
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --timeout 120 --workers 2 --worker-class gthread --threads 4
+    envVars:
+      - key: DATABASE_URL
+        sync: false  # Set manually in dashboard for security
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ADMIN_PASSWORD
+        sync: false  # Set manually in dashboard
+      - key: SCRAPE_TOKEN
+        generateValue: true
+      - key: PYTHON_VERSION
+        value: "3.12.0"
+    healthCheckPath: /health
+    autoDeploy: true
