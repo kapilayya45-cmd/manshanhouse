@@ -3,14 +3,14 @@ import psycopg2
 from psycopg2.extras import Json
 from contextlib import contextmanager
 
-# Render Environment Variable నుండి URL తీసుకుంటుంది
-DATABASE_URL = os.environ.get('DATABASE_URL')
+# ఇక్కడ మీ URLని నేరుగా ఇస్తున్నాను (Render లో రాకపోయినా ఇది పని చేస్తుంది)
+DATABASE_URL = os.environ.get('DATABASE_URL', "postgresql://postgres.hfnqiycyreyuugejslvl:JXcus6ddzpv0u2L5@://supabase.com")
 
 @contextmanager
 def get_db():
     conn = None
     try:
-        # SSL Mode కచ్చితంగా ఉండాలి
+        # sslmode=require అనేది నెట్‌వర్క్ ఎర్రర్ రాకుండా చేస్తుంది
         conn = psycopg2.connect(DATABASE_URL, sslmode='require')
         yield conn
     except Exception as e:
@@ -20,16 +20,4 @@ def get_db():
         if conn:
             conn.close()
 
-@contextmanager
-def get_cursor():
-    with get_db() as conn:
-        cursor = conn.cursor()
-        try:
-            yield cursor
-            conn.commit()
-        except Exception as e:
-            conn.rollback()
-            print(f"Database Cursor Error: {e}")
-            raise
-        finally:
-            cursor.close()
+# మిగతా get_cursor ఫంక్షన్ అలాగే ఉంచండి...
